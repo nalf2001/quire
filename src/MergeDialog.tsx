@@ -25,7 +25,7 @@ export function MergeDialog({ onCreate, onClose }: { onCreate: (name: string, da
       else added.push({ id: next.current++, file });
     }
     setItems(list => [...list, ...added]);
-    setError(skipped ? "Word documents can only be combined in the Folio desktop app." : null);
+    setError(skipped ? "Word documents can only be combined in the Quire desktop app." : null);
   };
   const move = (i: number, by: number) => setItems(list => {
     const j = i + by;

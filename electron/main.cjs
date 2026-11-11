@@ -1,4 +1,4 @@
-// Folio desktop shell: one window, PDFs (and Word documents, converted) opened from Explorer / "Open with",
+// Quire desktop shell: one window, PDFs (and Word documents, converted) opened from Explorer / "Open with",
 // files served over app://.
 const { app, BrowserWindow, protocol, net, ipcMain, dialog, shell, screen, session } = require("electron");
 const crypto = require("node:crypto");
@@ -45,7 +45,7 @@ const TITLEBAR = {
 
 const IS_MAC = process.platform === "darwin";
 const IS_LINUX = process.platform === "linux";
-const RELEASES_PAGE = "https://github.com/Forward-Future/folio-releases/releases/latest";
+const RELEASES_PAGE = "https://github.com/nalf2001/quire/releases/latest";
 
 protocol.registerSchemesAsPrivileged([
   { scheme: "app", privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true } },
@@ -98,7 +98,7 @@ async function sendFile(file) {
 }
 
 // A Word document opens as a PDF, saved next to it ("Report.docx" gets "Report.pdf") so it's there to share
-// afterwards. A folder Folio can't write to (a read-only share) just means the PDF isn't kept.
+// afterwards. A folder Quire can't write to (a read-only share) just means the PDF isn't kept.
 async function sendWordFile(file, target) {
   const send = (channel, payload) => { if (!target.isDestroyed()) target.webContents.send(channel, payload); };
   const original = path.basename(file);
@@ -119,7 +119,7 @@ function logConvert(msg) {
 }
 
 // ── Auto-update ──────────────────────────────────────────────────────
-// Installed copies check GitHub Releases (Forward-Future/folio-releases, see "publish" in package.json)
+// Installed copies check GitHub Releases (nalf2001/quire, see "publish" in package.json)
 // on launch and every few hours, download new versions in the background, and install them on quit
 // or when the user clicks "Restart" in the update banner. Progress is shown on the home screen and
 // logged to update.log in the app's user-data folder.
@@ -236,7 +236,7 @@ function setupAutoUpdate() {
     logUpdate(`error: ${err?.stack || err}`);
     setUpdateStatus({ state: "error", message: String(err?.message || err).split("\n")[0] });
   });
-  logUpdate(`Folio ${app.getVersion()} (${process.arch}) starting update checks`);
+  logUpdate(`Quire ${app.getVersion()} (${process.arch}) starting update checks`);
   checkForUpdates();
   setInterval(() => void checkForUpdates(), UPDATE_INTERVAL_MS);
 }
@@ -263,7 +263,7 @@ function createWindow() {
     minHeight: 480,
     show: false,
     backgroundColor: TITLEBAR[theme].color,
-    title: "Folio",
+    title: "Quire",
     icon: path.join(__dirname, "icon.png"),
     titleBarStyle: "hidden",
     // macOS keeps its traffic lights (inset into the top bar); Windows and Linux draw their window
@@ -281,7 +281,7 @@ function createWindow() {
 
   const cameraOwner = win.webContents;
   const trustedCameraOrigin = isAppUrl;
-  // Folio's own page may write (never read) the clipboard, for its Copy buttons.
+  // Quire's own page may write (never read) the clipboard, for its Copy buttons.
   const clipboardWrite = (contents, permission, url) =>
     contents === cameraOwner && permission === "clipboard-sanitized-write" && isAppUrl(url ?? "");
   cameraOwner.session.setPermissionCheckHandler((contents, permission, origin, details) =>
@@ -291,7 +291,7 @@ function createWindow() {
     if (contents !== cameraOwner || permission !== "media" || !details.isMainFrame
       || !trustedCameraOrigin(details.requestingUrl) || !details.mediaTypes?.length
       || details.mediaTypes.some(type => type !== "video")) return callback(false);
-    dialog.showMessageBox(win, { type: "question", title: "Use camera for signature?", message: "Allow Folio to use your camera to capture a signature?",
+    dialog.showMessageBox(win, { type: "question", title: "Use camera for signature?", message: "Allow Quire to use your camera to capture a signature?",
       detail: "Camera images are processed on this device. No microphone is requested.", buttons: ["Allow camera", "Cancel"], defaultId: 1, cancelId: 1 })
       .then(result => callback(result.response === 0)).catch(() => callback(false));
   });
@@ -337,7 +337,7 @@ function createWindow() {
     void openLink(url);
     return { action: "deny" };
   });
-  // Subframes (the print frame) may only show Folio pages, local blob: PDFs, and Chromium's built-in PDF viewer.
+  // Subframes (the print frame) may only show Quire pages, local blob: PDFs, and Chromium's built-in PDF viewer.
   const PDF_VIEWER = "chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/";
   win.webContents.on("will-frame-navigate", (e) => {
     const allowed = isAppUrl(e.url) || e.url.startsWith("blob:app://folio/") || e.url.startsWith(PDF_VIEWER) || e.url === "about:blank";
@@ -359,7 +359,7 @@ function createWindow() {
       cancelId: 1,
       title: "Unsaved changes",
       message: "One or more tabs have unsaved changes.",
-      detail: `Press ${IS_MAC ? "⌘S" : "Ctrl+S"} in each marked tab to save a copy before closing Folio.`,
+      detail: `Press ${IS_MAC ? "⌘S" : "Ctrl+S"} in each marked tab to save a copy before closing Quire.`,
     });
     if (choice === 0) e.preventDefault();
   });
@@ -372,11 +372,11 @@ const MAX_URL_PDF_BYTES = MAX_DOCUMENT_BYTES;
 // Shown in dialogs: long enough to see where a link goes, short enough that the dialog stays readable.
 const shortUrl = (url) => (url.href.length > 300 ? url.href.slice(0, 300) + "…" : url.href);
 
-// Folio's own links (src/ai.ts) open without asking.
+// Quire's own links (src/ai.ts) open without asking.
 const FOLIO_LINKS = new Set(["https://chatgpt.com/settings/usage", "https://claude.com/claude-code"]);
 let askingAboutLink = false;
 
-// Links open in the browser (mailto: in the mail app), never in Folio, and only once the user has seen where they go:
+// Links open in the browser (mailto: in the mail app), never in Quire, and only once the user has seen where they go:
 // a PDF decides both a link's address and its clickable area, which can be invisible and cover the whole page.
 async function openLink(rawUrl) {
   let url;
@@ -400,8 +400,8 @@ async function openLink(rawUrl) {
   await shell.openExternal(url.href);
 }
 
-// Asked before Folio opens an address on this computer or the local network, here rather than in the page: a document
-// that managed to run code in the page could otherwise use Folio to reach them.
+// Asked before Quire opens an address on this computer or the local network, here rather than in the page: a document
+// that managed to run code in the page could otherwise use Quire to reach them.
 async function confirmLocalAddress(url, addresses, signal) {
   const { response } = await dialog.showMessageBox(win, {
     signal, // closing the tab that asked dismisses the question, as if Cancel was chosen
@@ -461,12 +461,12 @@ async function downloadPdf(url, approvedLocal, signal) {
     request.on("redirect", (_status, _method, redirectUrl) => {
       const next = new URL(redirectUrl, url);
       if (++hops > 10) return finish({ error: "That link redirects too many times." });
-      if (next.protocol !== "http:" && next.protocol !== "https:") return finish({ error: "That link redirects somewhere Folio can't open." });
+      if (next.protocol !== "http:" && next.protocol !== "https:") return finish({ error: "That link redirects somewhere Quire can't open." });
       url = next;
       request.followRedirect();
     });
     request.on("error", () => finish({ error: guard.refusedLocal()
-      ? "That link leads to a local network address, so Folio didn't follow it." : `Couldn't reach ${url.hostname}.` }));
+      ? "That link leads to a local network address, so Quire didn't follow it." : `Couldn't reach ${url.hostname}.` }));
     request.on("response", (response) => {
       if (response.statusCode < 200 || response.statusCode >= 300) {
         return finish({ error: `The server responded with ${response.statusCode}${response.statusMessage ? " " + response.statusMessage : ""}.` });
@@ -544,7 +544,7 @@ if (!app.requestSingleInstanceLock()) {
       return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
     });
 
-    // Only Folio's own page may call into the main process.
+    // Only Quire's own page may call into the main process.
     const handle = (channel, listener) => ipcMain.handle(channel, (event, ...args) => {
       if (!isTrustedSender(event)) throw new Error("Untrusted sender");
       return listener(event, ...args);
@@ -562,7 +562,7 @@ if (!app.requestSingleInstanceLock()) {
       if (files.length) setTimeout(() => void sendFiles(files), 0);
       return files.length > 0;
     });
-    // Word documents picked or dropped in Folio (PDFs are read by the page itself).
+    // Word documents picked or dropped in Quire (PDFs are read by the page itself).
     handle("folio:open-document", (_event, file) => {
       if (typeof file !== "string" || !WORD_FILE.test(file) || !path.isAbsolute(file)) throw new Error("Not a Word document");
       return openWord(file, (msg) => logConvert(`${file}: ${msg}`));

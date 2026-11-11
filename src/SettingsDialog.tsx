@@ -9,7 +9,7 @@ import { Icon } from "./icons";
 import { isPrivateMode, setPrivateMode, subscribePrivateMode } from "./preferences";
 import { clearStoredData, countStoredData, onStoredDataCleared, type StoredCategory } from "./recent";
 
-/** One place for every Folio preference. */
+/** One place for every Quire preference. */
 interface Props {
   initialSection?: "General" | "Ask AI";
   theme: string;
@@ -75,9 +75,9 @@ function Choice<T extends string>({ value, options, onChange, label }: { value: 
 
 const storedCategories = {
   notes: { label: "Saved annotations", action: "Clear annotations", question: "Clear all saved annotations?",
-    detail: "This permanently removes the highlights, drawings, text boxes, notes, and bookmarks Folio saved on this device. Your PDF files are kept." },
+    detail: "This permanently removes the highlights, drawings, text boxes, notes, and bookmarks Quire saved on this device. Your PDF files are kept." },
   ai: { label: "Ask AI conversations", action: "Clear chats", question: "Clear all saved chats?",
-    detail: "This permanently removes the Ask AI conversations Folio saved on this device." },
+    detail: "This permanently removes the Ask AI conversations Quire saved on this device." },
 } as const;
 
 function StoredData() {
@@ -282,8 +282,8 @@ export function SettingsDialog({ initialSection = "General", theme, onTheme, nig
               <Row label="Automatic updates" hint={autoUpdate === false
                 ? "Off: no background checks or downloads. You can still check manually."
                 : notifyOnly
-                  ? "Folio checks for new versions and lets you know; download them from the releases page."
-                  : "Downloads updates in the background and installs them when Folio closes."}>
+                  ? "Quire checks for new versions and lets you know; download them from the releases page."
+                  : "Downloads updates in the background and installs them when Quire closes."}>
                 <Switch label="Automatic updates" checked={autoUpdate === true} disabled={autoUpdate === null || savingUpdate} onChange={async (on) => {
                   setSavingUpdate(true);
                   setError(null);
@@ -293,7 +293,7 @@ export function SettingsDialog({ initialSection = "General", theme, onTheme, nig
                 }} />
               </Row>
             )}
-            <Row label={`Folio ${info?.version ?? ""}`.trim()} hint={updateSummary(status) || (status.checkedAt ? `Last checked ${new Date(status.checkedAt).toLocaleString()}` : undefined)}>
+            <Row label={`Quire ${info?.version ?? ""}`.trim()} hint={updateSummary(status) || (status.checkedAt ? `Last checked ${new Date(status.checkedAt).toLocaleString()}` : undefined)}>
               {updatable ? (
                 <button className="btn ghost" disabled={status.state === "checking" || status.state === "downloading"}
                   onClick={() => status.state === "ready" ? desktop.installUpdate() : status.state === "available" ? void desktop.openDownload() : desktop.checkForUpdates()}>
@@ -305,7 +305,7 @@ export function SettingsDialog({ initialSection = "General", theme, onTheme, nig
         )}
 
         {section === "General" && <Section title="About">
-          <Row label="What's new" hint="Changes in each version of Folio.">
+          <Row label="What's new" hint="Changes in each version of Quire.">
             <button className="btn ghost" onClick={onOpenChangelog}>View changelog</button>
           </Row>
         </Section>}

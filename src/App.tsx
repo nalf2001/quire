@@ -228,7 +228,7 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
   const privateMode = useSyncExternalStore(subscribePrivateMode, isPrivateMode);
   const [dialog, setDialog] = useState<"info" | "shortcuts" | "about" | "url" | "settings" | "ai-settings" | "changelog" | "upgrade" | "merge" | null>(
     upgradeNotes.length ? "upgrade" : null);
-  // A pasted or dropped link waits in Open from URL, so the user sees where it goes before Folio contacts it.
+  // A pasted or dropped link waits in Open from URL, so the user sees where it goes before Quire contacts it.
   const [linkDraft, setLinkDraft] = useState("");
   const openUrlDialog = (link = "") => { setLinkDraft(link); setDialog("url"); };
   const [pending, setPending] = useState<Pending | null>(null);
@@ -298,7 +298,7 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
       annotationEditorMode: AnnotationEditorType.NONE,
       annotationEditorHighlightColors: HIGHLIGHTS.map((c) => `${c.name.toLowerCase()}=${c.hex}`).join(","),
       // Records where images are drawn (used to keep them true to color in night reading). The huge
-      // minimum size turns off pdf.js's own right-click image targets, which Folio doesn't use.
+      // minimum size turns off pdf.js's own right-click image targets, which Quire doesn't use.
       imagesRightClickMinSize: 1e9,
     });
     trackPageImages(eventBus);
@@ -444,7 +444,7 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
         const prev = docRef.current;
         const next: OpenDoc = { id, name, size: data.byteLength, pdf, password, sourceId: revision?.sourceId ?? revision?.id, historyAllowed, edits };
         docRef.current = next;
-        // Password-protected documents aren't stored by Folio (same rule as Recent).
+        // Password-protected documents aren't stored by Quire (same rule as Recent).
         const reading = previous ? markupRef.current!.state : undefined;
         if (reading?.bookmarkedPages && exportedOrder) {
           const bookmarks = new Set(reading.bookmarkedPages);
@@ -461,7 +461,7 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
         navigationRef.current!.reset();
         prev?.pdf.loadingTask.destroy();
 
-        // Markup is saved automatically; only documents Folio can't store count as having unsaved changes.
+        // Markup is saved automatically; only documents Quire can't store count as having unsaved changes.
         (pdf.annotationStorage as { onSetModified: unknown }).onSetModified = () => {
           if (docRef.current === next && !persistRef.current) markDirty();
         };
@@ -483,7 +483,7 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
         setPending(null);
         setSearchOpen(false);
         setFind({ current: 0, total: 0, state: null });
-        document.title = `${name} — Folio`;
+        document.title = `${name} — Quire`;
 
         setLoading(false);
         // Password-protected documents stay out of Recent: it would keep their bytes and a page-1
@@ -608,7 +608,7 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
     try {
       const res = await fetch(`${import.meta.env.BASE_URL}sample.pdf`, { signal });
       const data = await readPdfResponse(res, signal);
-      if (!signal.aborted) await openBytes("Folio sample.pdf", data, undefined, signal);
+      if (!signal.aborted) await openBytes("Quire sample.pdf", data, undefined, signal);
     } catch {
       if (!signal.aborted) { setLoading(false); tabs.failed(tabKey); setError("Couldn't open the sample document."); }
     }
@@ -834,7 +834,7 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
     return () => observer.disconnect();
   }, [container]);
 
-  // pdf.js shows a small note button on highlights that have a note; open Folio's note box from it.
+  // pdf.js shows a small note button on highlights that have a note; open Quire's note box from it.
   useEffect(() => {
     if (!container) return;
     const onClick = (e: MouseEvent) => {
@@ -1275,7 +1275,7 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
   // ── Drag & drop anywhere ────────────────────────────────────────────
   useEffect(() => {
     let depth = 0;
-    let internal = false; // dragging text or images from inside Folio isn't an "open" gesture
+    let internal = false; // dragging text or images from inside Quire isn't an "open" gesture
     const hasFiles = (e: DragEvent) => {
       const types = e.dataTransfer?.types ?? [];
       return !internal && (types.includes("Files") || types.includes("text/uri-list") || types.includes("text/plain"));
@@ -1365,9 +1365,9 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
     >
       <header className="topbar" ref={headerRef}>
         <div className="topbar-left">
-          <button className="brand" onClick={doc ? () => tabs.library() : undefined} title={doc ? "Back to library" : "Folio"}>
+          <button className="brand" onClick={doc ? () => tabs.library() : undefined} title={doc ? "Back to library" : "Quire"}>
             <span className="brand-mark" />
-            <span className="brand-name">Folio</span>
+            <span className="brand-name">Quire</span>
           </button>
           {doc && (
             <>
@@ -1445,7 +1445,7 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
               { kind: "action", icon: "plus", label: "Create PDF from files…", onSelect: () => setDialog("merge") },
               { kind: "action", icon: "settings", label: "Settings", shortcut: keys("Ctrl ,"), onSelect: () => setDialog("settings") },
               { kind: "action", icon: "keyboard", label: "Keyboard shortcuts", shortcut: "?", onSelect: () => setDialog("shortcuts") },
-              { kind: "action", icon: "info", label: "About Folio", onSelect: () => setDialog("about") },
+              { kind: "action", icon: "info", label: "About Quire", onSelect: () => setDialog("about") },
             ]}
           />
         </div>
@@ -1497,7 +1497,7 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
         <main className="stage">
           <div ref={containerRef} className="viewer-container" tabIndex={-1}
             onInput={event => {
-              // Form values live in the PDF until a copy is saved. Folio only auto-saves its own markup.
+              // Form values live in the PDF until a copy is saved. Quire only auto-saves its own markup.
               if ((event.target as HTMLElement).closest(".annotationLayer :is(input, textarea, select)")) markDirty();
             }}>
             <div ref={innerRef} className="pdfViewer" />
@@ -1680,7 +1680,7 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
       </div>
 
       {!doc && <Welcome active={active} onPick={pickFile} onOpenUrl={() => openUrlDialog()} onOpenRecent={file => tabs.open([{ kind: "blob", name: file.name, blob: file.data, recentId: file.id }])}
-        onSample={() => tabs.open([{ kind: "sample", name: "Folio sample.pdf" }])} loading={loading} />}
+        onSample={() => tabs.open([{ kind: "sample", name: "Quire sample.pdf" }])} loading={loading} />}
 
       {loading && doc && <div className="loading-bar" />}
 
@@ -1740,7 +1740,7 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
       {updateVersion && (
         <div className="update-card" role="status">
           <div>
-            <strong>Folio {updateVersion} is ready</strong>
+            <strong>Quire {updateVersion} is ready</strong>
             <span>Restart to update. Installation on close follows your auto-update setting.</span>
           </div>
           <button

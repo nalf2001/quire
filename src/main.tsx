@@ -11,7 +11,7 @@ if (reader) {
   const desktop = window.parent.folioDesktop;
   if (desktop) {
     window.folioDesktop = { ...desktop, installUpdate: () => {
-      if (reader.tabs.all.some(tab => tab.dirty) && !window.parent.confirm("Restart Folio and discard unsaved changes?")) return;
+      if (reader.tabs.all.some(tab => tab.dirty) && !window.parent.confirm("Restart Quire and discard unsaved changes?")) return;
       desktop.installUpdate();
     } };
     document.documentElement.classList.add("desktop", `platform-${desktop.platform}`);

@@ -106,8 +106,8 @@ try {
   });
   const before = await layout();
   await page.getByRole("button", { name: "More", exact: true }).click();
-  await page.getByRole("menuitem", { name: "About Folio" }).click();
-  await page.getByRole("dialog", { name: "About Folio" }).waitFor();
+  await page.getByRole("menuitem", { name: "About Quire" }).click();
+  await page.getByRole("dialog", { name: "About Quire" }).waitFor();
   await page.keyboard.press("r");
   await page.keyboard.press("2");
   await page.waitForTimeout(200);
@@ -130,7 +130,7 @@ try {
   await docs.getByRole("tab", { name: "Library", selected: true }).waitFor();
   assert.equal(await docs.getByRole("tab").count(), 2);
   await docs.getByRole("button", { name: "Close Library" }).click();
-  await page.locator(".doc-title", { hasText: "Folio sample.pdf" }).waitFor();
+  await page.locator(".doc-title", { hasText: "Quire sample.pdf" }).waitFor();
   assert.equal(await page.locator(".document-tabs").count(), 0);
   console.log("ok  the tab strip appears for a second tab and disappears when one remains");
 
@@ -227,13 +227,13 @@ try {
   await page.locator(".textLayer span:not(.markedContent)").first().waitFor();
   await docs.getByRole("tab", { name: "Another.pdf", selected: true }).waitFor();
   assert.equal(await page.locator(".stampEditor").count(), 0);
-  await select("Folio sample.pdf");
+  await select("Quire sample.pdf");
   assert.equal(await page.getByLabel("Page number", { exact: true }).inputValue(), "2");
   await page.getByTitle("Previous page").click();
   await page.locator(".stampEditor").waitFor();
   assert.deepEqual(await page.window.evaluate(() => window.tabPrompts), []);
   await select("Another.pdf");
-  const closeSigned = docs.getByRole("button", { name: "Close Folio sample.pdf, unsaved changes" });
+  const closeSigned = docs.getByRole("button", { name: "Close Quire sample.pdf, unsaved changes" });
   await closeSigned.click();
   assert.equal(await docs.getByRole("tab").count(), 2);
   await closeSigned.click();
@@ -514,8 +514,8 @@ try {
   await page.getByRole("tab", { name: /Pages/ }).click();
 
   await page.getByRole("button", { name: "More" }).click();
-  await page.getByRole("menuitem", { name: "About Folio" }).click();
-  const about = page.getByRole("dialog", { name: "About Folio" });
+  await page.getByRole("menuitem", { name: "About Quire" }).click();
+  const about = page.getByRole("dialog", { name: "About Quire" });
   assert.doesNotMatch(await about.innerText(), /Ask AI accounts/);
   assert.equal(await about.getByRole("button", { name: "Settings" }).count(), 0);
   await page.keyboard.press("Escape");
@@ -556,7 +556,7 @@ try {
   await newer.click();
   assert.deepEqual(await summaries.allTextContents(), firstPage);
   assert.equal(await whatsNew.getByRole("link", { name: "View releases on GitHub" }).getAttribute("href"),
-    "https://github.com/Forward-Future/folio-releases/releases");
+    "https://github.com/nalf2001/quire/releases");
   await page.keyboard.press("Escape");
   await page.getByRole("dialog", { name: "Settings" }).waitFor();
   await page.keyboard.press("Escape");
@@ -859,7 +859,7 @@ try {
   await page.getByRole("tab", { name: /^Notes/ }).click();
   const documentNote = page.getByLabel("Notes about this document");
   await documentNote.fill("Note in the other tab");
-  const readerName = await page.evaluate(() => document.title.replace(/ — Folio$/, ""));
+  const readerName = await page.evaluate(() => document.title.replace(/ — Quire$/, ""));
   await page.keyboard.press("ControlOrMeta+t");
   await page.getByRole("button", { name: "More", exact: true }).click();
   await page.getByRole("menuitem", { name: /^Settings/ }).click();

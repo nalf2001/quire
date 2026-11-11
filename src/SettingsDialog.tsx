@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Modal } from "./Dialogs";
 import { CLAUDE_CODE_URL, PROVIDERS, savedProvider, saveAiPreference, signInChatGPT, USAGE_URL, type AiProvider } from "./ai";
 import { OpenRouterSettings } from "./OpenRouterSettings";
@@ -6,6 +6,7 @@ import { updateSummary } from "./updates";
 import { ScanLanguagePicker } from "./ScanLanguagePicker";
 import type { ScanLanguage } from "./scanLanguage";
 import { Icon } from "./icons";
+import { isPrivateMode, setPrivateMode, subscribePrivateMode } from "./preferences";
 import { clearStoredData, countStoredData, onStoredDataCleared, type StoredCategory } from "./recent";
 
 /** One place for every Folio preference. */
@@ -152,6 +153,7 @@ export function SettingsDialog({ initialSection = "General", theme, onTheme, nig
   const ai = desktop?.ai;
   const [error, setError] = useState<string | null>(null);
   const [section, setSection] = useState<"General" | "Ask AI" | "Storage">(initialSection);
+  const privateMode = useSyncExternalStore(subscribePrivateMode, isPrivateMode);
 
   // Updates
   const [info, setInfo] = useState<Awaited<ReturnType<FolioDesktop["getAppInfo"]>> | null>(null);
@@ -259,7 +261,11 @@ export function SettingsDialog({ initialSection = "General", theme, onTheme, nig
           </section>
         )}
 
-        {section === "Storage" && <><StoredData /><Section title="Signature">
+        {section === "Storage" && <><Section title="Privacy">
+          <Row label="Don't keep documents" hint="Opened documents leave nothing on this computer: no Recent copy, saved notes and highlights, chats, version history, or reading position. Applies to documents opened from now on; clear what is already stored below.">
+            <Switch label="Don't keep documents" checked={privateMode} onChange={setPrivateMode} />
+          </Row>
+        </Section><StoredData /><Section title="Signature">
           <Row label="Remembered signature" hint={savedSignature
             ? "Saved on this computer (unencrypted) for quick signing."
             : "None. You can choose to remember one when you sign a document."}>

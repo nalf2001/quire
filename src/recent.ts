@@ -1,4 +1,5 @@
 // Recently opened files, kept locally in IndexedDB so they can be reopened with one click.
+import { isPrivateMode } from "./preferences";
 
 export interface RecentFile {
   id: string;
@@ -122,6 +123,7 @@ export async function getRecent(id: string): Promise<RecentFile | undefined> {
 }
 
 export async function saveRecent(file: RecentFile) {
+  if (isPrivateMode()) return;
   try {
     await tx("readwrite", (store) => {
       store.put(file);
@@ -246,6 +248,8 @@ async function readStored<T>(category: StoredCategory, id: string) {
 }
 
 async function saveStored(category: StoredCategory, id: string, value: unknown, generation: number) {
+  // Deleting is still allowed so an emptied note or chat is removed; nothing new is written.
+  if (isPrivateMode() && value) return;
   try {
     await withGeneration(category, "readwrite", (store, current) => {
       if (generation !== current) return;

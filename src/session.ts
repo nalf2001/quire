@@ -1,3 +1,5 @@
+import { isPrivateMode } from "./preferences";
+
 export interface ReadingView {
   page: number;
   scale: string;
@@ -18,6 +20,7 @@ function flushViews() {
   window.clearTimeout(saveTimer);
   saveTimer = 0;
   for (const [id, view] of pendingViews) {
+    if (isPrivateMode()) continue;
     try { localStorage.setItem(`folio:content-view:${id}`, JSON.stringify(view)); } catch {}
   }
   pendingViews.clear();

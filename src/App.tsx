@@ -12,6 +12,7 @@ import { AnnotationEditorParamsType, AnnotationEditorType } from "pdfjs-dist";
 import { loadPdf, copyPdfPages, thumbnailDataUrl, type PDFDocumentProxy } from "./pdf";
 import { insertPagesFrom, removePages } from "./pageEdit";
 import { MergeDialog } from "./MergeDialog";
+import { isPrivateMode, setPrivateMode, subscribePrivateMode } from "./preferences";
 import { contentKey, getRecent, MAX_RECENT_FILE_BYTES, onStoredDataCleared, removeRecent, saveRecent, updateLastPage } from "./recent";
 import { readPdfBlob, readPdfResponse } from "./pdfInput";
 import { FIT_SCALES, readView, writeView, type ReadingView } from "./session";
@@ -224,6 +225,7 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
   const [printCopy, setPrintCopy] = useState<{ pdf: PDFDocumentProxy; bytes: Uint8Array; page: number; name: string } | null>(null);
   const preparingPrint = useRef(false);
   useEffect(() => () => { if (printCopy) void printCopy.pdf.loadingTask.destroy(); }, [printCopy]);
+  const privateMode = useSyncExternalStore(subscribePrivateMode, isPrivateMode);
   const [dialog, setDialog] = useState<"info" | "shortcuts" | "about" | "url" | "settings" | "ai-settings" | "changelog" | "upgrade" | "merge" | null>(
     upgradeNotes.length ? "upgrade" : null);
   // A pasted or dropped link waits in Open from URL, so the user sees where it goes before Folio contacts it.
@@ -419,7 +421,7 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
         const id = await contentKey(data);
         signal.throwIfAborted();
         const existing = revision ? undefined : await getRecent(id);
-        const historyAllowed = !password && data.byteLength <= MAX_RECENT_FILE_BYTES && (revision ? revision.historyAllowed :
+        const historyAllowed = !password && !isPrivateMode() && data.byteLength <= MAX_RECENT_FILE_BYTES && (revision ? revision.historyAllowed :
           await pdf.getMetadata().then(({ info }) => !(info as { EncryptFilterName?: string }).EncryptFilterName).catch(() => false));
         const edits = edit && { original: edit.doc.edits?.original ?? (historyAllowed ? pdfBlob(await edit.doc.pdf.getData()) : undefined),
           changes: [...changesForCopy(edit.doc, edit.doc.pdf.annotationStorage.size > 0), edit.change] };
@@ -448,7 +450,7 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
           const bookmarks = new Set(reading.bookmarkedPages);
           reading.bookmarkedPages = exportedOrder.flatMap((n, i) => bookmarks.has(n) ? [i + 1] : []);
         }
-        persistRef.current = !password && !revision;
+        persistRef.current = !password && !revision && !isPrivateMode();
         void markupRef.current!.load(id, persistRef.current, reading);
         setNoteBox(null);
         setPinned(null);
@@ -1431,6 +1433,15 @@ export default function App({ tabs, tabKey, upgradeNotes }: { tabs: DocumentTabs
                     { kind: "action", icon: "expand", label: "Focus mode", shortcut: "F", onSelect: toggleFocus },
                   ] as MoreItem[])
                 : []),
+              { kind: "toggle", icon: "lock", label: "Don't keep documents on this device", checked: privateMode, onSelect: () => {
+                const on = !privateMode;
+                setPrivateMode(on);
+                if (on && docRef.current) {
+                  // This document may already be in Recent. Its notes were loaded as saved ones, so reopen it to keep them out too.
+                  void removeRecent(docRef.current.id);
+                  flash("Nothing new is kept on this device. Reopen this document so its notes and highlights aren't stored either.");
+                } else flash(on ? "Nothing new is kept on this device" : "Documents are remembered again");
+              } },
               { kind: "action", icon: "plus", label: "Create PDF from files…", onSelect: () => setDialog("merge") },
               { kind: "action", icon: "settings", label: "Settings", shortcut: keys("Ctrl ,"), onSelect: () => setDialog("settings") },
               { kind: "action", icon: "keyboard", label: "Keyboard shortcuts", shortcut: "?", onSelect: () => setDialog("shortcuts") },

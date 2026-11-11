@@ -3,7 +3,7 @@
 ## Reporting a vulnerability
 
 Please **don't open a public issue** for security problems. Instead, report them privately through
-[GitHub's private vulnerability reporting](https://github.com/Forward-Future/folio/security/advisories/new).
+[GitHub's private vulnerability reporting](https://github.com/nalf2001/quire/security/advisories/new).
 
 Include the Folio version (shown in **About Folio**), what an attacker could do, and steps or a sample PDF that
 reproduce it. You can expect an acknowledgement within a week. Fixes ship as a new release that installed copies pick
@@ -58,7 +58,7 @@ Known limitations:
 - **Builds aren't signed with developer certificates yet.** Windows builds are unsigned and macOS builds are ad-hoc
   signed (not notarized); the release build signs both automatically once the certificates are added (see
   [SIGNING.md](SIGNING.md)). Installers are built on GitHub Actions from this repository. Updates are downloaded over
-  HTTPS from [Forward-Future/folio-releases](https://github.com/Forward-Future/folio-releases) and checked against the
+  HTTPS from [nalf2001/quire](https://github.com/nalf2001/quire) and checked against the
   SHA-512 published with each release, but without a signature the update channel is only as secure as that GitHub
   account. Until Mac builds are signed, Macs don't install updates automatically: Folio announces new versions, which
   are downloaded from the releases page.
